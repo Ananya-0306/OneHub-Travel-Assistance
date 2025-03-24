@@ -1,0 +1,11 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+@import "leaflet/dist/leaflet.css";
+
+
+/* Enable dark mode by default */
+body {
+  background-color: #1a202c; /* bg-gray-900 */
+  color: #ffffff; /* text-white */
+}
