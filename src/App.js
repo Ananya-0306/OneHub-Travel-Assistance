@@ -1,16 +1,27 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
-import RideSuggestion from "./components/RideSuggestions";
+import React from "react";
+import { BrowserRouter as Router, Route, Routes, useNavigate } from "react-router-dom";
+import BookingForm from "./components/BookingForm";
+import RideSuggestions from "./components/RideSuggestions";
 
-function App() {
+const Home = () => {
+  const navigate = useNavigate();
+
+  const handleBook = (pickup, dropoff) => {
+    navigate("/ride-suggestions", { state: { pickup, dropoff } });
+  };
+
+  return <BookingForm onBook={handleBook} />;
+};
+
+const App = () => {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/ride-suggestion" element={<RideSuggestion />} />
+        <Route path="/ride-suggestions" element={<RideSuggestions />} />
       </Routes>
     </Router>
   );
-}
+};
 
 export default App;
