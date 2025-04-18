@@ -1,24 +1,22 @@
-import React from "react";
-import { BrowserRouter as Router, Route, Routes, useNavigate } from "react-router-dom";
-import BookingForm from "./components/BookingForm";
+import React, { useState } from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import Home from "./pages/Home";
 import RideSuggestions from "./components/RideSuggestions";
+import Wallet from "./pages/Wallet";
+import RideHistory from "./pages/RideHistory";
 
-const Home = () => {
-  const navigate = useNavigate();
+<Route path="/ride-history" element={<RideHistory />} />
 
-  const handleBook = (pickup, dropoff) => {
-    navigate("/ride-suggestions", { state: { pickup, dropoff } });
-  };
-
-  return <BookingForm onBook={handleBook} />;
-};
 
 const App = () => {
+  const [walletBalance, setWalletBalance] = useState(0);
+
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/ride-suggestions" element={<RideSuggestions />} />
+        <Route path="/" element={<Home walletBalance={walletBalance} />} />
+        <Route path="/ride-suggestion" element={<RideSuggestions />} />
+        <Route path="/wallet" element={<Wallet onBalanceUpdate={setWalletBalance} />} />
       </Routes>
     </Router>
   );

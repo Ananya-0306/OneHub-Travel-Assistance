@@ -1,16 +1,38 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // ✅ Import for navigation
 
 const BookRide = () => { 
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
+  const [balance, setBalance] = useState(0); // To store wallet balance
   const navigate = useNavigate(); // ✅ Use navigate for redirection
+
+  // Fetch user's wallet balance when the component mounts
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        const response = await fetch("/api/wallet/balance"); // Adjust the URL based on your backend
+        const data = await response.json();
+        setBalance(data.balance); // Assume the balance is returned as 'data.balance'
+      } catch (error) {
+        console.error("Failed to fetch wallet balance", error);
+      }
+    };
+
+    fetchBalance();
+  }, []);
 
   const handleFindRide = () => {
     console.log("Pickup:", pickup, "Destination:", destination);
 
     if (!pickup.trim() || !destination.trim()) {
       alert("Please enter both pickup and destination");
+      return;
+    }
+
+    // Check if the user has a minimum of ₹100 in their wallet
+    if (balance < 100) {
+      alert("You need at least ₹100 in your wallet to book a ride.");
       return;
     }
 
