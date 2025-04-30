@@ -17,16 +17,6 @@ const Home = () => {
 
     return (
         <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white p-6">
-            {/* Header Section with Ride History Button Only */}
-            <div className="flex justify-end w-full mb-6">
-                <button
-                    onClick={() => navigate("/ride-history")}
-                    className="p-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition"
-                >
-                    Ride History
-                </button>
-            </div>
-
             <h1 className="text-3xl font-bold mb-6">🚖 Book Your Ride</h1>
 
             <div className="bg-gray-800 p-6 rounded-lg shadow-lg mb-6 w-full max-w-md">
