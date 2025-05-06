@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom"; // Import useNavigate
 import MapComponent from "../components/MapComponent";
 
 const RideSuggestions = () => {
   const location = useLocation();
+  const navigate = useNavigate(); // Initialize useNavigate
   const { pickup, destination } = location.state || { pickup: "", destination: "" };
   const [driverAccepted, setDriverAccepted] = useState(false);
   const [price, setPrice] = useState(0);
@@ -67,6 +68,20 @@ const RideSuggestions = () => {
     }
   };
 
+  const handleEndRide = () => {
+    const rideSummary = `
+      Ride Summary:
+      Pickup: ${pickup}
+      Destination: ${destination}
+      Price: ₹${price}
+    `;
+    const isConfirmed = window.confirm(`${rideSummary}\n\nDo you want to pay now?`);
+    if (isConfirmed) {
+      alert("Payment Successful!");
+      navigate("/"); // Redirect to the main page (home page) after payment
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-6">
       <h1 className="text-3xl font-bold mb-6">🚖 Ride Details</h1>
@@ -100,6 +115,16 @@ const RideSuggestions = () => {
         )}
       </div>
       <MapComponent pickup={pickup} destination={destination} nearbyPlaces={nearbyPlaces} />
+
+      {/* End Ride Button */}
+      {rideStarted && (
+        <button
+          onClick={handleEndRide}
+          className="mt-6 px-6 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700"
+        >
+          End Ride
+        </button>
+      )}
     </div>
   );
 };
