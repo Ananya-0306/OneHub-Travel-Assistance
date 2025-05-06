@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom"; // Import useNavigate
+import { useLocation, useNavigate } from "react-router-dom";
 import MapComponent from "../components/MapComponent";
 
 const RideSuggestions = () => {
   const location = useLocation();
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
   const { pickup, destination } = location.state || { pickup: "", destination: "" };
-  
+
   const [driverAccepted, setDriverAccepted] = useState(false);
   const [price, setPrice] = useState(0);
   const [rideStarted, setRideStarted] = useState(false);
   const [nearbyPlaces, setNearbyPlaces] = useState([]);
-  const [loading, setLoading] = useState(false); // Add loading state
+  const [loading, setLoading] = useState(false);
+  const [rideTime, setRideTime] = useState(0); // Timer state
 
   useEffect(() => {
     if (pickup && destination) {
@@ -26,21 +27,32 @@ const RideSuggestions = () => {
   }, [pickup, destination]);
 
   useEffect(() => {
+    let timer;
     if (rideStarted) {
       fetchNearbyPlaces();
+      timer = setInterval(() => {
+        setRideTime((prev) => prev + 1);
+      }, 1000);
     }
+    return () => clearInterval(timer); // Clear on unmount or if ride ends
   }, [rideStarted]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60).toString().padStart(2, "0");
+    const secs = (seconds % 60).toString().padStart(2, "0");
+    return `${mins}:${secs}`;
+  };
 
   const geocode = async (place) => {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}`
     );
     const data = await res.json();
-    return data[0]; // return the first result
+    return data[0];
   };
 
   const fetchNearbyPlaces = async () => {
-    setLoading(true); // Set loading state to true
+    setLoading(true);
     try {
       const pickupData = await geocode(pickup);
       const destData = await geocode(destination);
@@ -69,7 +81,7 @@ const RideSuggestions = () => {
     } catch (error) {
       console.error("Error fetching nearby places:", error);
     } finally {
-      setLoading(false); // Set loading state to false once the data is fetched
+      setLoading(false);
     }
   };
 
@@ -78,12 +90,14 @@ const RideSuggestions = () => {
       Ride Summary:
       Pickup: ${pickup}
       Destination: ${destination}
+      Duration: ${formatTime(rideTime)}
       Price: ₹${price}
     `;
     const isConfirmed = window.confirm(`${rideSummary}\n\nDo you want to pay now?`);
     if (isConfirmed) {
       alert("Payment Successful!");
-      navigate("/"); // Redirect to the main page (home page) after payment
+      setRideTime(0); // Reset timer
+      navigate("/");
     }
   };
 
@@ -99,6 +113,7 @@ const RideSuggestions = () => {
           rideStarted ? (
             <>
               <p className="text-green-400 font-bold mt-4">🚗 Ride has started!</p>
+              <p className="text-sm text-gray-300">🕒 Ride Time: {formatTime(rideTime)}</p>
               <div className="mt-4">
                 <h2 className="text-xl font-semibold mb-2">📍 Nearby Places:</h2>
                 {loading ? (
@@ -123,9 +138,9 @@ const RideSuggestions = () => {
           <p className="text-yellow-400 font-bold mt-4">⌛ Waiting for driver to accept...</p>
         )}
       </div>
+
       <MapComponent pickup={pickup} destination={destination} nearbyPlaces={nearbyPlaces} />
 
-      {/* End Ride Button */}
       {rideStarted && (
         <button
           onClick={handleEndRide}
