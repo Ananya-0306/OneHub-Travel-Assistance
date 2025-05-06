@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import MapComponent from "../components/MapComponent";
 
@@ -12,13 +12,15 @@ const RideSuggestions = () => {
   const [rideStarted, setRideStarted] = useState(false);
   const [nearbyPlaces, setNearbyPlaces] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [rideTime, setRideTime] = useState(0); // Timer state
+  const [rideTime, setRideTime] = useState(0);
+  const timerInterval = useRef(null);
 
   useEffect(() => {
     if (pickup && destination) {
       setPrice(Math.floor(Math.random() * (500 - 100 + 1)) + 100);
       setTimeout(() => {
         setDriverAccepted(true);
+        clearInterval(timerInterval.current); // Stop timer when driver accepts
         setTimeout(() => {
           setRideStarted(true);
         }, 5000);
@@ -27,21 +29,15 @@ const RideSuggestions = () => {
   }, [pickup, destination]);
 
   useEffect(() => {
-    let timer;
     if (rideStarted) {
       fetchNearbyPlaces();
-      timer = setInterval(() => {
-        setRideTime((prev) => prev + 1);
+      timerInterval.current = setInterval(() => {
+        setRideTime(prev => prev + 1);
       }, 1000);
     }
-    return () => clearInterval(timer); // Clear on unmount or if ride ends
-  }, [rideStarted]);
 
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60).toString().padStart(2, "0");
-    const secs = (seconds % 60).toString().padStart(2, "0");
-    return `${mins}:${secs}`;
-  };
+    return () => clearInterval(timerInterval.current);
+  }, [rideStarted]);
 
   const geocode = async (place) => {
     const res = await fetch(
@@ -85,6 +81,12 @@ const RideSuggestions = () => {
     }
   };
 
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs}s`;
+  };
+
   const handleEndRide = () => {
     const rideSummary = `
       Ride Summary:
@@ -96,7 +98,21 @@ const RideSuggestions = () => {
     const isConfirmed = window.confirm(`${rideSummary}\n\nDo you want to pay now?`);
     if (isConfirmed) {
       alert("Payment Successful!");
-      setRideTime(0); // Reset timer
+      clearInterval(timerInterval.current);
+
+      // Prompt for rating
+      const rating = prompt("Rate your ride from 1 to 5 stars:");
+      if (rating !== null && !isNaN(rating) && rating >= 1 && rating <= 5) {
+        const comment = prompt("Any comments about your ride?");
+        console.log("Feedback submitted:", {
+          rating: parseInt(rating),
+          comment: comment || "",
+        });
+        alert("🎉 Thank you for your feedback!");
+      } else {
+        alert("⚠️ Invalid rating. Feedback not recorded.");
+      }
+
       navigate("/");
     }
   };
@@ -108,12 +124,12 @@ const RideSuggestions = () => {
         <p className="text-lg">Pickup: {pickup}</p>
         <p className="text-lg">Destination: {destination}</p>
         <p className="text-lg">Price: ₹{price}</p>
+        {rideStarted && <p className="text-sm text-gray-300">⏱️ Duration: {formatTime(rideTime)}</p>}
 
         {driverAccepted ? (
           rideStarted ? (
             <>
               <p className="text-green-400 font-bold mt-4">🚗 Ride has started!</p>
-              <p className="text-sm text-gray-300">🕒 Ride Time: {formatTime(rideTime)}</p>
               <div className="mt-4">
                 <h2 className="text-xl font-semibold mb-2">📍 Nearby Places:</h2>
                 {loading ? (
