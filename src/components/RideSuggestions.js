@@ -6,10 +6,12 @@ const RideSuggestions = () => {
   const location = useLocation();
   const navigate = useNavigate(); // Initialize useNavigate
   const { pickup, destination } = location.state || { pickup: "", destination: "" };
+  
   const [driverAccepted, setDriverAccepted] = useState(false);
   const [price, setPrice] = useState(0);
   const [rideStarted, setRideStarted] = useState(false);
   const [nearbyPlaces, setNearbyPlaces] = useState([]);
+  const [loading, setLoading] = useState(false); // Add loading state
 
   useEffect(() => {
     if (pickup && destination) {
@@ -38,6 +40,7 @@ const RideSuggestions = () => {
   };
 
   const fetchNearbyPlaces = async () => {
+    setLoading(true); // Set loading state to true
     try {
       const pickupData = await geocode(pickup);
       const destData = await geocode(destination);
@@ -65,6 +68,8 @@ const RideSuggestions = () => {
       setNearbyPlaces(data.elements.slice(0, 10));
     } catch (error) {
       console.error("Error fetching nearby places:", error);
+    } finally {
+      setLoading(false); // Set loading state to false once the data is fetched
     }
   };
 
@@ -96,7 +101,11 @@ const RideSuggestions = () => {
               <p className="text-green-400 font-bold mt-4">🚗 Ride has started!</p>
               <div className="mt-4">
                 <h2 className="text-xl font-semibold mb-2">📍 Nearby Places:</h2>
-                {nearbyPlaces.length > 0 ? (
+                {loading ? (
+                  <div className="flex justify-center items-center">
+                    <div className="animate-spin rounded-full border-4 border-t-4 border-white h-8 w-8"></div>
+                  </div>
+                ) : nearbyPlaces.length > 0 ? (
                   <ul className="list-disc list-inside text-sm">
                     {nearbyPlaces.map((place, idx) => (
                       <li key={idx}>{place.tags.name || "Unnamed place"}</li>
